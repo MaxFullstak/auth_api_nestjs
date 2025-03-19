@@ -3,6 +3,7 @@ import {
   Injectable,
   UnauthorizedException,
 } from "@nestjs/common";
+
 import { TypeBaseProviderOptions } from "./types/base-provider-options.types";
 import { TypeUserInfo } from "./types/user-info.types";
 
@@ -39,28 +40,29 @@ export class BaseOAuthService {
     const tokenQuery = new URLSearchParams({
       client_id,
       client_secret,
+      code,
       redirect_uri: this.getRedirectUrl(),
-      grand_type: "authorization_code",
+      grant_type: "authorization_code",
     });
 
-    const tokenRequest = await fetch(this.options.access_url, {
+    const tokensRequest = await fetch(this.options.access_url, {
       method: "POST",
       body: tokenQuery,
       headers: {
-        "Content-type": "application/x-www-form-urlencoded",
+        "Content-Type": "application/x-www-form-urlencoded",
         Accept: "application/json",
       },
     });
 
-    const tokenResponse = await tokenRequest.json();
-
-    if (!tokenRequest.ok) {
+    if (!tokensRequest.ok) {
       throw new BadRequestException(
         `Не удалось получить пользователя с ${this.options.profile_url}. Проверьте правильность токена доступа.`
       );
     }
 
-    if (!tokenResponse.access_token) {
+    const tokens = await tokensRequest.json();
+
+    if (!tokens.access_token) {
       throw new BadRequestException(
         `Нет токенов с ${this.options.access_url}. Убедитесь, что код авторизации действителен.`
       );
@@ -68,7 +70,7 @@ export class BaseOAuthService {
 
     const userRequest = await fetch(this.options.profile_url, {
       headers: {
-        Authorization: `Bearer ${tokenResponse.access_token}`,
+        Authorization: `Bearer ${tokens.access_token}`,
       },
     });
 
@@ -83,14 +85,14 @@ export class BaseOAuthService {
 
     return {
       ...userData,
-      access_token: tokenResponse.access_token,
-      refresh_token: tokenResponse.refresh_token,
-      expires_at: tokenResponse.expires_at || tokenResponse.expires_in,
+      access_token: tokens.access_token,
+      refresh_token: tokens.refresh_token,
+      expires_at: tokens.expires_at || tokens.expires_in,
       provider: this.options.name,
     };
   }
 
-  getRedirectUrl() {
+  public getRedirectUrl() {
     return `${this.BASE_URL}/auth/oauth/callback/${this.options.name}`;
   }
 
