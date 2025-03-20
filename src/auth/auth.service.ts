@@ -13,6 +13,7 @@ import { verify } from "argon2";
 import { Request, Response } from "express";
 import { LoginDto } from "./dto/login.dto";
 import { RegisterDto } from "./dto/register.dto";
+import { EmailConfirmationService } from "./email-confirmation/email-confirmation.service";
 import { ProviderService } from "./provider/provider.service";
 
 @Injectable()
@@ -21,8 +22,8 @@ export class AuthService {
     private readonly prismaService: PrismaService,
     private readonly userService: UserService,
     private readonly configService: ConfigService,
-    private readonly providerService: ProviderService
-    // private readonly emailConfirmationService: EmailConfirmationService,
+    private readonly providerService: ProviderService,
+    private readonly emailConfirmationService: EmailConfirmationService
     // private readonly twoFactorAuthService: TwoFactorAuthService
   ) {}
 
@@ -44,14 +45,12 @@ export class AuthService {
       false
     );
 
-    // await this.emailConfirmationService.sendVerificationToken(newUser.email)
+    await this.emailConfirmationService.sendVerificationToken(newUser.email);
 
-    // return {
-    // 	message:
-    // 		'Вы успешно зарегистрировались. Пожалуйста, подтвердите ваш email. Сообщение было отправлено на ваш почтовый адрес.'
-    // }
-
-    return this.saveSession(req, newUser);
+    return {
+      message:
+        "Вы успешно зарегистрировались. Пожалуйста, подтвердите ваш email. Сообщение было отправлено на ваш почтовый адрес.",
+    };
   }
 
   public async login(req: Request, dto: LoginDto) {
@@ -68,6 +67,12 @@ export class AuthService {
     if (!isValidPassword) {
       throw new UnauthorizedException(
         "Неверный пароль. Пожалуйста, попробуйте еще раз или восстановите пароль, если забыли его."
+      );
+    }
+    if (!user.isVerified) {
+      await this.emailConfirmationService.sendVerificationToken(user.email);
+      throw new UnauthorizedException(
+        "Ваш email не подтвержден. Пожалуйста, проверьте вашу почту и подтвердите адрес."
       );
     }
 
@@ -118,7 +123,7 @@ export class AuthService {
           provider: profile.provider,
           accessToken: profile.access_token,
           refreshToken: profile.refresh_token,
-          expiresAt: profile.expires_at 
+          expiresAt: profile.expires_at,
         },
       });
     }
@@ -142,7 +147,7 @@ export class AuthService {
     });
   }
 
-  private async saveSession(req: Request, user: User) {
+  public async saveSession(req: Request, user: User) {
     return new Promise((resolve, reject) => {
       req.session.userId = user.id;
 
