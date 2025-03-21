@@ -52,7 +52,7 @@ export type AuthMethod = (typeof AuthMethod)[keyof typeof AuthMethod]
 
 export const TokenType: {
   VERIFICATION: 'VERIFICATION',
-  is_two_factor_enabled: 'is_two_factor_enabled',
+  TWO_FACTOR: 'TWO_FACTOR',
   PASSWORD_RESET: 'PASSWORD_RESET'
 };
 
@@ -4977,7 +4977,7 @@ export namespace Prisma {
     provider: string
     refreshToken?: string | null
     accessToken?: string | null
-    expiresAt?: number
+    expiresAt: number
     createdAt?: Date | string
     updatedAt?: Date | string
     userId?: string | null

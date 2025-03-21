@@ -179,7 +179,7 @@ exports.AuthMethod = exports.$Enums.AuthMethod = {
 
 exports.TokenType = exports.$Enums.TokenType = {
   VERIFICATION: 'VERIFICATION',
-  is_two_factor_enabled: 'is_two_factor_enabled',
+  TWO_FACTOR: 'TWO_FACTOR',
   PASSWORD_RESET: 'PASSWORD_RESET'
 };
 
