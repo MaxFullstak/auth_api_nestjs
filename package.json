@@ -36,10 +36,13 @@
     "connect-redis": "^8.0.2",
     "cookie-parser": "^1.4.7",
     "express-session": "^1.18.1",
+    "in": "^0.19.0",
     "ioredis": "^5.6.0",
     "reflect-metadata": "^0.2.2",
     "resend": "^4.1.2",
-    "rxjs": "^7.8.1"
+    "rxjs": "^7.8.1",
+    "server": "^1.0.41",
+    "side": "^0.0.1"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3.2.0",
